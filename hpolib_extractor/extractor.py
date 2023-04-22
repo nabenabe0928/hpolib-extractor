@@ -9,6 +9,8 @@ import json
 
 import numpy as np
 
+import ujson
+
 from tqdm import tqdm
 
 
@@ -26,11 +28,6 @@ SEARCH_SPACE = {
 DATASET_NAMES = ["slice_localization", "protein_structure", "naval_propulsion", "parkinsons_telemonitoring"]
 DATA_DIR_NAME = os.path.join(os.environ["HOME"], "tabular_benchmarks")
 N_ENTRIES = np.prod([len(vs) for vs in SEARCH_SPACE.values()])
-
-
-class RowDataType(TypedDict):
-    valid_mse: List[Dict[int, float]]
-    runtime: List[float]
 
 
 class HPOLibExtractor:
@@ -55,32 +52,14 @@ class HPOLibExtractor:
         loss_key = "valid_mse"
         runtime_key = "runtime"
         n_seeds = 4
-        counter = 0
         for it in tqdm(itertools.product(*(list(v) for v in SEARCH_SPACE.values())), total=N_ENTRIES):
             config = {k: v for k, v in zip(SEARCH_SPACE.keys(), it)}
             key = json.dumps(config, sort_keys=True)
             target_data = self._db[key]
             self._collected_data[key] = {
-                loss_key: [{b: target_data[loss_key][s][b] for b in self._budgets_id} for s in range(n_seeds)],
-                runtime_key: [target_data[runtime_key][s] for s in range(n_seeds)]
+                loss_key: [{b: float(target_data[loss_key][s][b]) for b in self._budgets_id} for s in range(n_seeds)],
+                runtime_key: [float(target_data[runtime_key][s]) for s in range(n_seeds)]
             }
-            counter += 1
-
-
-class HPOLibDatabase:
-    def __init__(
-        self,
-        dataset_name: str,
-        tabular_data: Dict[str, RowDataType],
-    ):
-        self._db = tabular_data
-        self._dataset_name = dataset_name
-
-    def __getitem__(self, key: str) -> RowDataType:
-        return self._db[key]
-
-    def dataset_name(self) -> str:
-        return self._dataset_name
 
 
 if __name__ == "__main__":
@@ -89,5 +68,4 @@ if __name__ == "__main__":
         extractor = HPOLibExtractor(dataset_id=i, budgets=[11, 33, 100])
         print(f"Start extracting {extractor.dataset_name}")
         extractor.collect()
-        db = HPOLibDatabase(dataset_name=extractor.dataset_name, tabular_data=extractor._collected_data)
-        pickle.dump(db, open(f"pkl-data/{db._dataset_name}.pkl", "wb"))
+        pickle.dump(extractor._collected_data, open(f"pkl-data/{extractor.dataset_name}.pkl", "wb"))
