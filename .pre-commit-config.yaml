@@ -14,6 +14,3 @@ repos:
         files: hpolib_extractor/
         additional_dependencies:
           - flake8-import-order
-      - id: flake8
-        name: flake8 for test files
-        files: test/
