@@ -23,21 +23,25 @@ SEARCH_SPACE = {
     "n_units_2": [16, 32, 64, 128, 256, 512],
 }
 DATASET_NAMES = ["slice_localization", "protein_structure", "naval_propulsion", "parkinsons_telemonitoring"]
-DATA_DIR_NAME = os.path.join(os.environ["HOME"], "tabular_benchmarks")
 N_ENTRIES = np.prod([len(vs) for vs in SEARCH_SPACE.values()])
 
 
 class HPOLibExtractor:
-    def __init__(self, dataset_id: int, budgets: List[int] = [100]):
+    def __init__(self, dataset_id: int, data_dir: str, epochs: List[int] = [100]):
         self._dataset_name = DATASET_NAMES[dataset_id]
-        path = os.path.join(DATA_DIR_NAME, "hpolib", f"fcnet_{self._dataset_name}_data.hdf5")
+        path = os.path.join(data_dir, f"fcnet_{self._dataset_name}_data.hdf5")
+        if not os.path.exists(path):
+            raise FileNotFoundError(
+                f"{path} does not exist. Please make sure that you already download and "
+                f"locate the datasets at {path}"
+            )
+
         self._db = h5py.File(path, "r")
+        epoch_array = np.array(epochs)
+        if not np.all((1 <= epoch_array) & (epoch_array) <= 100):
+            raise ValueError("Epoch must be in [1, 100].")
 
-        budget_array = np.array(budgets)
-        if not np.all((1 <= budget_array) & (budget_array) <= 100):
-            raise ValueError("Budget must be in [1, 100].")
-
-        self._budgets_id = [b - 1 for b in np.sort(budgets)]
+        self._epochs_id = [e - 1 for e in np.sort(epochs)]
         self._collected_data = {}
 
     @property
@@ -45,7 +49,7 @@ class HPOLibExtractor:
         return self._dataset_name
 
     def collect(self) -> None:
-        # max_budget: 99, min_budget: 0
+        # max_epoch: 99, min_epoch: 0
         loss_key = "valid_mse"
         runtime_key = "runtime"
         n_seeds = 4
@@ -54,15 +58,15 @@ class HPOLibExtractor:
             key = json.dumps(config, sort_keys=True)
             target_data = self._db[key]
             self._collected_data[key] = {
-                loss_key: [{b: float(target_data[loss_key][s][b]) for b in self._budgets_id} for s in range(n_seeds)],
+                loss_key: [{e: float(target_data[loss_key][s][e]) for e in self._epochs_id} for s in range(n_seeds)],
                 runtime_key: [float(target_data[runtime_key][s]) for s in range(n_seeds)],
             }
 
 
-if __name__ == "__main__":
-    os.makedirs("pkl-data/", exist_ok=True)
+def extract(data_dir: str, epochs: List[int]):
     for i in range(4):
-        extractor = HPOLibExtractor(dataset_id=i, budgets=[11, 33, 100])
+        extractor = HPOLibExtractor(dataset_id=i, epochs=epochs, data_dir=data_dir)
         print(f"Start extracting {extractor.dataset_name}")
         extractor.collect()
-        pickle.dump(extractor._collected_data, open(f"pkl-data/{extractor.dataset_name}.pkl", "wb"))
+        pkl_path = os.path.join(data_dir, f"{extractor.dataset_name}.pkl")
+        pickle.dump(extractor._collected_data, open(pkl_path, "wb"))
