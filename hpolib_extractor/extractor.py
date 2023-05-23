@@ -1,11 +1,10 @@
 import itertools
+import json
 import os
 import pickle
 from typing import List
 
 import h5py
-
-import json
 
 import numpy as np
 
@@ -21,7 +20,7 @@ SEARCH_SPACE = {
     "dropout_1": [0.0, 0.3, 0.6],
     "dropout_2": [0.0, 0.3, 0.6],
     "n_units_1": [16, 32, 64, 128, 256, 512],
-    "n_units_2": [16, 32, 64, 128, 256, 512]
+    "n_units_2": [16, 32, 64, 128, 256, 512],
 }
 DATASET_NAMES = ["slice_localization", "protein_structure", "naval_propulsion", "parkinsons_telemonitoring"]
 DATA_DIR_NAME = os.path.join(os.environ["HOME"], "tabular_benchmarks")
@@ -56,7 +55,7 @@ class HPOLibExtractor:
             target_data = self._db[key]
             self._collected_data[key] = {
                 loss_key: [{b: float(target_data[loss_key][s][b]) for b in self._budgets_id} for s in range(n_seeds)],
-                runtime_key: [float(target_data[runtime_key][s]) for s in range(n_seeds)]
+                runtime_key: [float(target_data[runtime_key][s]) for s in range(n_seeds)],
             }
 
 
