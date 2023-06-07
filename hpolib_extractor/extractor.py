@@ -52,6 +52,7 @@ class HPOLibExtractor:
         # max_epoch: 99, min_epoch: 0
         loss_key = "valid_mse"
         runtime_key = "runtime"
+        n_params_key = "n_params"
         n_seeds = 4
         for it in tqdm(itertools.product(*(list(v) for v in SEARCH_SPACE.values())), total=N_ENTRIES):
             config = {k: v for k, v in zip(SEARCH_SPACE.keys(), it)}
@@ -60,6 +61,7 @@ class HPOLibExtractor:
             self._collected_data[key] = {
                 loss_key: [{e: float(target_data[loss_key][s][e]) for e in self._epochs_id} for s in range(n_seeds)],
                 runtime_key: [float(target_data[runtime_key][s]) for s in range(n_seeds)],
+                n_params_key: [float(target_data[n_params_key][s]) for s in range(n_seeds)],
             }
 
 
