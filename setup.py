@@ -9,10 +9,10 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="hpolib-extractor",
-    version="0.0.2",
+    version="1.0.0",
     author="nabenabe0928",
     author_email="shuhei.watanabe.utokyo@gmail.com",
-    url="https://github.com/nabenabe0928/hpolib-extractor",
+    url="https://github.com/nabenabe0928/hpolib-extractor/",
     packages=setuptools.find_packages(),
     python_requires=">=3.8",
     platforms=["Linux"],

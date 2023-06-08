@@ -61,7 +61,7 @@ class HPOLibExtractor:
             self._collected_data[key] = {
                 loss_key: [{e: float(target_data[loss_key][s][e]) for e in self._epochs_id} for s in range(n_seeds)],
                 runtime_key: [float(target_data[runtime_key][s]) for s in range(n_seeds)],
-                n_params_key: [float(target_data[n_params_key][s]) for s in range(n_seeds)],
+                n_params_key: float(target_data[n_params_key][0]),
             }
 
 
