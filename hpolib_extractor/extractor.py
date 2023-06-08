@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import itertools
 import json
 import os
 import pickle
-from typing import List
 
 import h5py
 
@@ -11,7 +12,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-SEARCH_SPACE = {
+SEARCH_SPACE: dict[str, list[int | float | str]] = {
     "init_lr": [5e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1],
     "lr_schedule": ["cosine", "const"],
     "batch_size": [8, 16, 32, 64],
@@ -27,7 +28,7 @@ N_ENTRIES = np.prod([len(vs) for vs in SEARCH_SPACE.values()])
 
 
 class HPOLibExtractor:
-    def __init__(self, dataset_id: int, data_dir: str, epochs: List[int] = [100]):
+    def __init__(self, dataset_id: int, data_dir: str, epochs: list[int] = [100]):
         self._dataset_name = DATASET_NAMES[dataset_id]
         path = os.path.join(data_dir, f"fcnet_{self._dataset_name}_data.hdf5")
         if not os.path.exists(path):
@@ -42,7 +43,7 @@ class HPOLibExtractor:
             raise ValueError("Epoch must be in [1, 100].")
 
         self._epochs_id = [e - 1 for e in np.sort(epochs)]
-        self._collected_data = {}
+        self._collected_data: dict[str, list | float] = {}
 
     @property
     def dataset_name(self) -> str:
@@ -65,7 +66,7 @@ class HPOLibExtractor:
             }
 
 
-def extract(data_dir: str, epochs: List[int]):
+def extract(data_dir: str, epochs: list[int]) -> None:
     for i in range(4):
         extractor = HPOLibExtractor(dataset_id=i, epochs=epochs, data_dir=data_dir)
         print(f"Start extracting {extractor.dataset_name}")
