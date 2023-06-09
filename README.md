@@ -5,12 +5,20 @@ Since HPOlib uses `h5py`, we cannot serialize the benchmark.
 This benchmark extracts HPOlib into pickle file(s) so that we can use the benchmark even under distributed setups.
 Note that we picklize python dict objects, so in principle, the pickle files should work for arbitrary python versions.
 
+We added the option for the MLP bench of [HPOBench](https://github.com/automl/HPOBench/) as well.
+
 # Install of HPOlib
 
 You can download the tabular datasets for HPOlib via the following command:
 ```shell
 $ wget http://ml4aad.org/wp-content/uploads/2019/01/fcnet_tabular_benchmarks.tar.gz
 $ tar xf fcnet_tabular_benchmarks.tar.gz
+```
+
+The tabular datasets for HPOBench via the following command:
+```shell
+$ wget https://ndownloader.figshare.com/files/30379005
+$ unzip nn.zip
 ```
 
 # Install of the package
@@ -43,3 +51,5 @@ extract(data_dir=data_dir, epochs=epochs)
 
 By default, we extract only `valid-mse` and `runtime` and we can specify which epochs to store.
 It is obvious, but if we specify more epochs, the data size is going to be larger.
+
+For more examples, see [examples](examples/).
