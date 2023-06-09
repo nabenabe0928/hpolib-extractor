@@ -56,7 +56,9 @@ class HPOLibExtractor(BaseExtractor):
             key = json.dumps(config, sort_keys=True)
             target_data = self._db[key]
             self._collected_data[config_id] = {
-                loss_key: [{e: float(target_data[loss_key][s][e]) for e in self._epochs} for s in range(self._N_SEEDS)],
+                loss_key: [
+                    {e + 1: float(target_data[loss_key][s][e]) for e in self._epochs} for s in range(self._N_SEEDS)
+                ],
                 runtime_key: [float(target_data[runtime_key][s]) for s in range(self._N_SEEDS)],
                 n_params_key: float(target_data[n_params_key][0]),
             }

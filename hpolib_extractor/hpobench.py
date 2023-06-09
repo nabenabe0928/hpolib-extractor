@@ -94,9 +94,9 @@ class HPOBenchExtractor(BaseExtractor):
 
     def collect(self) -> None:
         start = 0
-        indices = np.array([
-            np.arange(self._N_SEEDS) + self._N_SEEDS * self._BUDGETS.index(e) for e in self._epochs
-        ]).flatten()
+        indices = np.array(
+            [np.arange(self._N_SEEDS) + self._N_SEEDS * self._BUDGETS.index(e) for e in self._epochs]
+        ).flatten()
 
         for it in tqdm(self._get_iterator(), total=self.n_total):
             config_id = self._get_config_id(config=it)
