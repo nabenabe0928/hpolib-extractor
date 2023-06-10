@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import pickle
 from dataclasses import dataclass
-from typing import Final
+from typing import Dict, Final, List, Union
 
 from hpolib_extractor.base_extractor import BaseExtractor
 
@@ -34,7 +34,7 @@ DATASET_INFO = [
     ("car", 146821),
     ("segment", 146822),
 ]
-BUDGETS: Final[list[int]] = [3, 9, 27, 81, 243]
+BUDGETS: Final[List[int]] = [3, 9, 27, 81, 243]
 SEARCH_SPACE = {
     "alpha": [
         1e-08,
@@ -64,22 +64,22 @@ SEARCH_SPACE = {
     ],
     "width": [16, 25, 40, 64, 101, 161, 256, 406, 645, 1024],
 }
-VALUE_IDENTIFIERS = {k: {v: i for i, v in enumerate(vals)} for k, vals in SEARCH_SPACE.items()}
+VALUE_IDENTIFIERS = {k: {v: i for i, v in enumerate(vals)} for k, vals in SEARCH_SPACE.items()}  # type: ignore
 N_SEEDS = 5
 N_FOR_CONFIG = N_SEEDS * len(BUDGETS)
-KEY_ORDER: list[str] = list(SEARCH_SPACE.keys())  # iter, seed follow
+KEY_ORDER: List[str] = list(SEARCH_SPACE.keys())  # iter, seed follow
 assert KEY_ORDER == ["alpha", "batch_size", "depth", "learning_rate_init", "width"]
 
 
 class HPOBenchExtractor(BaseExtractor):
     _URL = "https://ndownloader.figshare.com/files/30379005"
     _BUDGETS = BUDGETS[:]
-    _SEARCH_SPACE = SEARCH_SPACE.copy()
+    _SEARCH_SPACE = SEARCH_SPACE.copy()  # type: ignore
     _N_SEEDS = 5
     _KEY_ORDER = KEY_ORDER[:]
     _VALUE_IDENTIFIERS = VALUE_IDENTIFIERS.copy()
 
-    def __init__(self, dataset_id: int, data_dir: str, epochs: list[int], target_keys: list[str]):
+    def __init__(self, dataset_id: int, data_dir: str, epochs: List[int], target_keys: List[str]):
         self._dataset_name, idx = DATASET_INFO[dataset_id]
         data_path: Final[str] = os.path.join(data_dir, f"{idx}/nn_{idx}_data.parquet.gzip")
         super().__init__(data_path=data_path, epochs=np.sort(epochs))
@@ -100,9 +100,11 @@ class HPOBenchExtractor(BaseExtractor):
 
         for it in tqdm(self._get_iterator(), total=self.n_total):
             config_id = self._get_config_id(config=it)
-            entry = {k: [{} for _ in range(self._N_SEEDS)] for k in self._target_keys}
+            entry: Dict[str, List[Dict[str, Union[List, float]]]] = {
+                k: [{} for _ in range(self._N_SEEDS)] for k in self._target_keys
+            }
 
-            results = self._db[start : start + N_FOR_CONFIG]
+            results = self._db[start : start + N_FOR_CONFIG]  # noqa: E203
             assert len(results) == N_FOR_CONFIG
             start += N_FOR_CONFIG
             for i in indices:
@@ -117,13 +119,13 @@ class HPOBenchExtractor(BaseExtractor):
                     else:
                         entry[k][seed][budget] = float(result["info"]["val_scores"][v])
 
-            self._collected_data[config_id] = entry
+            self._collected_data[config_id] = entry  # type: ignore
 
 
 def extract_hpobench(
     data_dir: str,
-    epochs: list[int] = [3, 9, 27, 81, 243],
-    target_keys: list[str] = ["precision", "f1", "bal_acc", "runtime"],
+    epochs: List[int] = [3, 9, 27, 81, 243],
+    target_keys: List[str] = ["precision", "f1", "bal_acc", "runtime"],
 ) -> None:
     for i in range(len(DATASET_INFO)):
         extractor = HPOBenchExtractor(dataset_id=i, epochs=epochs, data_dir=data_dir, target_keys=target_keys)

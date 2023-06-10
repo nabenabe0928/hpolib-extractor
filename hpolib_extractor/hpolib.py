@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import pickle
+from typing import Dict, List, Union
 
 import h5py
 
@@ -13,7 +14,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-SEARCH_SPACE: dict[str, list[int | float | str]] = {
+SEARCH_SPACE: Dict[str, List[Union[int, float, str]]] = {
     "activation_fn_1": ["relu", "tanh"],
     "activation_fn_2": ["relu", "tanh"],
     "batch_size": [8, 16, 32, 64],
@@ -25,7 +26,7 @@ SEARCH_SPACE: dict[str, list[int | float | str]] = {
     "n_units_2": [16, 32, 64, 128, 256, 512],
 }
 VALUE_IDENTIFIERS = {k: {v: i for i, v in enumerate(vals)} for k, vals in SEARCH_SPACE.items()}
-KEY_ORDER: list[str] = list(SEARCH_SPACE.keys())
+KEY_ORDER: List[str] = list(SEARCH_SPACE.keys())
 DATASET_NAMES = ["slice_localization", "protein_structure", "naval_propulsion", "parkinsons_telemonitoring"]
 
 
@@ -37,7 +38,7 @@ class HPOLibExtractor(BaseExtractor):
     _KEY_ORDER = KEY_ORDER[:]
     _VALUE_IDENTIFIERS = VALUE_IDENTIFIERS.copy()
 
-    def __init__(self, dataset_id: int, data_dir: str, epochs: list[int]):
+    def __init__(self, dataset_id: int, data_dir: str, epochs: List[int]):
         self._dataset_name = DATASET_NAMES[dataset_id]
         data_path = os.path.join(data_dir, f"fcnet_{self._dataset_name}_data.hdf5")
         super().__init__(data_path=data_path, epochs=np.sort(epochs))
@@ -55,7 +56,7 @@ class HPOLibExtractor(BaseExtractor):
             config = {k: v for k, v in zip(SEARCH_SPACE.keys(), it)}
             key = json.dumps(config, sort_keys=True)
             target_data = self._db[key]
-            self._collected_data[config_id] = {
+            self._collected_data[config_id] = {  # type: ignore
                 loss_key: [
                     {e + 1: float(target_data[loss_key][s][e]) for e in self._epochs} for s in range(self._N_SEEDS)
                 ],
@@ -64,7 +65,7 @@ class HPOLibExtractor(BaseExtractor):
             }
 
 
-def extract_hpolib(data_dir: str, epochs: list[int] = [11, 33, 100]) -> None:
+def extract_hpolib(data_dir: str, epochs: List[int] = [11, 33, 100]) -> None:
     for i in range(len(DATASET_NAMES)):
         extractor = HPOLibExtractor(dataset_id=i, epochs=epochs, data_dir=data_dir)
         print(f"Start extracting {extractor.dataset_name}")
