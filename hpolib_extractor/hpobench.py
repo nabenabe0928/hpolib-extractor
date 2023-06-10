@@ -102,7 +102,7 @@ class HPOBenchExtractor(BaseExtractor):
             config_id = self._get_config_id(config=it)
             entry = {k: [{} for _ in range(self._N_SEEDS)] for k in self._target_keys}
 
-            results = self._db[start:start + N_FOR_CONFIG]
+            results = self._db[start : start + N_FOR_CONFIG]
             assert len(results) == N_FOR_CONFIG
             start += N_FOR_CONFIG
             for i in indices:
