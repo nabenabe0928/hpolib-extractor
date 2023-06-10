@@ -7,7 +7,7 @@ Note that we picklize python dict objects, so in principle, the pickle files sho
 
 We added the option for the MLP bench of [HPOBench](https://github.com/automl/HPOBench/) as well.
 
-# Install of HPOlib
+## Install of HPOlib
 
 You can download the tabular datasets for HPOlib via the following command:
 ```shell
@@ -15,13 +15,15 @@ $ wget http://ml4aad.org/wp-content/uploads/2019/01/fcnet_tabular_benchmarks.tar
 $ tar xf fcnet_tabular_benchmarks.tar.gz
 ```
 
+## Install of HPOBench
+
 The tabular datasets for HPOBench via the following command:
 ```shell
 $ wget https://ndownloader.figshare.com/files/30379005
 $ unzip nn.zip
 ```
 
-# Install of the package
+## Install of the package
 
 You can use either `pip install` or `git clone`:
 
@@ -36,7 +38,7 @@ $ git clone https://github.com/nabenabe0928/hpolib-extractor
 $ pip install -r requirements.txt
 ```
 
-# Extraction
+## Extraction
 
 Run the following code and then you will get the extracted `.pkl` data in the specified path.
 
