@@ -13,6 +13,8 @@ import pyarrow.parquet as pq  # type: ignore
 
 from tqdm import tqdm
 
+import ujson
+
 
 @dataclass(frozen=True)
 class ResultKeys:
@@ -126,10 +128,33 @@ def extract_hpobench(
     data_dir: str,
     epochs: List[int] = [3, 9, 27, 81, 243],
     target_keys: List[str] = ["precision", "f1", "bal_acc", "runtime"],
+    overwrite: bool = False,
 ) -> None:
     for i in range(len(DATASET_INFO)):
         extractor = HPOBenchExtractor(dataset_id=i, epochs=epochs, data_dir=data_dir, target_keys=target_keys)
+        pkl_path = os.path.join(data_dir, f"{extractor.dataset_name}.pkl")
+        if os.path.exists(pkl_path) and not overwrite:
+            print(f"Skip extracting {extractor.dataset_name} because {pkl_path} already exists")
+            print("Use overwrite=True to force the overwrite.")
+            continue
+
         print(f"Start extracting {extractor.dataset_name}")
         extractor.collect()
-        pkl_path = os.path.join(data_dir, f"{extractor.dataset_name}.pkl")
         pickle.dump(extractor._collected_data, open(pkl_path, "wb"))
+
+
+def extract_indiv_hpobench(data_dir: str) -> None:
+    for i in range(len(DATASET_INFO)):
+        dataset_name, _ = DATASET_INFO[i]
+        pkl_path = os.path.join(data_dir, f"{dataset_name}.pkl")
+        if not os.path.exists(pkl_path):
+            print(f"Skip extracting {dataset_name} because {pkl_path} does not exist.")
+            print("First run `extract_hpobench`.")
+
+        with open(pkl_path, mode="rb") as f:
+            data = pickle.load(f)
+            dir_name = os.path.join(data_dir, dataset_name)
+            os.makedirs(dir_name, exist_ok=True)
+            for config_id, v in tqdm(data.items()):
+                with open(os.path.join(dir_name, f"{config_id}.json"), mode="w") as f:
+                    ujson.dump(v, f)

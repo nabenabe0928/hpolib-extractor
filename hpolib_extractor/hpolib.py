@@ -13,6 +13,8 @@ import numpy as np
 
 from tqdm import tqdm
 
+import ujson
+
 
 SEARCH_SPACE: Dict[str, List[Union[int, float, str]]] = {
     "activation_fn_1": ["relu", "tanh"],
@@ -65,10 +67,32 @@ class HPOLibExtractor(BaseExtractor):
             }
 
 
-def extract_hpolib(data_dir: str, epochs: List[int] = [11, 33, 100]) -> None:
+def extract_hpolib(data_dir: str, epochs: List[int] = [11, 33, 100], overwrite: bool = False) -> None:
     for i in range(len(DATASET_NAMES)):
         extractor = HPOLibExtractor(dataset_id=i, epochs=epochs, data_dir=data_dir)
+        pkl_path = os.path.join(data_dir, f"{extractor.dataset_name}.pkl")
+        if os.path.exists(pkl_path) and not overwrite:
+            print(f"Skip extracting {extractor.dataset_name} because {pkl_path} already exists")
+            print("Use overwrite=True to force the overwrite.")
+            continue
+
         print(f"Start extracting {extractor.dataset_name}")
         extractor.collect()
-        pkl_path = os.path.join(data_dir, f"{extractor.dataset_name}.pkl")
         pickle.dump(extractor._collected_data, open(pkl_path, "wb"))
+
+
+def extract_indiv_hpolib(data_dir: str):
+    for i in range(len(DATASET_NAMES)):
+        dataset_name = DATASET_NAMES[i]
+        pkl_path = os.path.join(data_dir, f"{dataset_name}.pkl")
+        if not os.path.exists(pkl_path):
+            print(f"Skip extracting {dataset_name} because {pkl_path} does not exist.")
+            print("First run `extract_hpobench`.")
+
+        with open(pkl_path, mode="rb") as f:
+            data = pickle.load(f)
+            dir_name = os.path.join(data_dir, dataset_name)
+            os.makedirs(dir_name, exist_ok=True)
+            for config_id, v in tqdm(data.items()):
+                with open(os.path.join(dir_name, f"{config_id}.json"), mode="w") as f:
+                    ujson.dump(v, f)

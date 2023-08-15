@@ -48,12 +48,13 @@ $ unzip nn.zip
 Run the following code for HPOlib and then you will get the extracted `.pkl` data in the specified path.
 
 ```python
-from hpolib_extractor import extract_hpolib
+from hpolib_extractor import extract_hpolib, extract_indiv_hpolib
 
 
 data_dir = "YOUR_DATA_PATH/"  # fcnet_tabular_benchmarks.tar.gz must be located here
 epochs = [11, 33, 100]  # Choose epochs from 1 to 100
 extract_hpolib(data_dir=data_dir, epochs=epochs)
+extract_indiv_hpolib(data_dir=data_dir)  # This is optional
 ```
 
 By default, we extract only `valid-mse` and `runtime` and we can specify which epochs to store.
@@ -63,11 +64,12 @@ It is obvious, but if we specify more epochs, the data size is going to be large
 For HPOBench, use the following code:
 
 ```python
-from hpolib_extractor import extract_hpobench
+from hpolib_extractor import extract_hpobench, extract_indiv_hpobench
 
 
 data_dir = "YOUR_DATA_PATH/"  # fcnet_tabular_benchmarks.tar.gz must be located here
 extract_hpobench(data_dir=data_dir)
+extract_indiv_hpobench(data_dir=data_dir)  # This is optional
 ```
 
 The codes are available in [examples](examples/).
